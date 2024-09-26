@@ -38,7 +38,12 @@ services:
         condition: service_healthy
       redis: 
         condition: service_started
+    entrypoint:
+      [
+        "/app/start.sh"
+      ]
     command: [ "/app/main" ]
+    
 volumes:
   data-volume:
 networks:
