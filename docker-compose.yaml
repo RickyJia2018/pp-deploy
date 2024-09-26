@@ -1,0 +1,47 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: peakpal_db_container
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=secret
+      - POSTGRES_DB=peakpal_db
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d peakpal_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5432:5432"
+    volumes:
+      - data-volume:/var/lib/postgresql/data
+    networks:
+      - peakpal-network
+  redis:
+    image: redis:7-alpine
+    container_name: peakpal_redis
+    networks:
+      - peakpal-network
+  api:
+    image: jnq199022/pp:v1
+    container_name: peakpal_server
+    networks:
+      - peakpal-network
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    environment:
+      - DB_SOURCE=postgresql://root:secret@peakpal_db_container:5432/peakpal_db?sslmode=disable
+      - REDIS_ADDRESS=peakpal_redis:6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis: 
+        condition: service_started
+    command: [ "/app/main" ]
+volumes:
+  data-volume:
+networks:
+  peakpal-network:
+    name: peakpal-network
+    external: true    
