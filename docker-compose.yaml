@@ -43,5 +43,4 @@ volumes:
   data-volume:
 networks:
   peakpal-network:
-    name: peakpal-network
-    external: true    
+    driver: bridge
